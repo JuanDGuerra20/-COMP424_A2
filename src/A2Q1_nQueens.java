@@ -1,7 +1,7 @@
 import java.util.Arrays;
 import java.util.Random;
 public class A2Q1_nQueens {
-    public static int n = 50;
+    public static int n = 80;
     public int[][] boardState = new int[n][n];
     public int[][] constraintGraph = new int[n][n];
     public int[] filledColumns = new int[n];
@@ -10,6 +10,7 @@ public class A2Q1_nQueens {
     public int[][] previousState = new int[n][n];
 
     public void addConstraints(int qx,int qy, int[][] constraintGraph){
+        // THis program is O(n)
         //constraintGraph[qx][qy] ++;
         for(int count = 1; count < n ; count ++){
             // checking the diagonal direction down and right
@@ -54,6 +55,7 @@ public class A2Q1_nQueens {
     }
 
     public void createBoard(){
+        //O(n^2)
         Random rand = new Random();
         int y;
         // randomly assigning the queens to different positions in the board
@@ -77,6 +79,7 @@ public class A2Q1_nQueens {
     public void updateFilledColumns(){
         // this is used to reduce the runtime of searching for existing boardstate positions
         // each entry is the position of a queen
+        // O(n^2)
         for(int x = 0; x < n; x ++){
             for (int y = 0; y < n; y ++) {
                 if (boardState[x][y] == 1) {
@@ -87,11 +90,12 @@ public class A2Q1_nQueens {
     }
     public void updateConstraintGraph(boolean globalBoard, int[][] board, int[][] newGraph){
         // global board is used for when starting the program to save some time and update the filled columns
+        // o(N^3)
         for(int x = 0; x < n; x ++){
             for (int y = 0; y < n; y ++) {
                 // finding the queens and adding the appropriate constraints to the board
                 if (board[x][y] == 1) {
-                    addConstraints(x, y, newGraph);
+                    addConstraints(x, y, newGraph); // O(n)
                     if(globalBoard){
                         filledColumns[x] = y;
                     }
@@ -103,6 +107,8 @@ public class A2Q1_nQueens {
         // This will find the heuristic of each board state
         // Will count the number of constraints on all of the queens and return that value
         // The less constraints the better (this is our min heuristic)
+
+        //O(N^2)
         int numConstraints = 0;
         int numQFound = 0;
         int x = 0;
@@ -128,15 +134,16 @@ public class A2Q1_nQueens {
 
     public int findBestNeighbour(){
         // This will update the boardState with the best neighbour boardState
-        previousState = copyBoard(this.boardState); // this is used to check if we have reached a minima and the board is not being updated
-        int oldHeuristic = getBadQueens(boardState, constraintGraph);
+        // O(N^5)
+        previousState = copyBoard(this.boardState); // o(N^2)this is used to check if we have reached a minima and the board is not being updated
+        int oldHeuristic = getBadQueens(boardState, constraintGraph); //O(N^2)
         int bestHeuristic = oldHeuristic;
         int [][] neighbourBoard = new int[n][n];
         int [][] neighbourConstraints;
         int neighbourHeuristic;
 
         // creating the neighbour board to be the same as the old board and will be modified accordingly
-        for(int i = 0; i < n ; i ++){
+        for(int i = 0; i < n ; i ++){ // O(N^2)
             for(int j = 0; j < n; j ++){
                 neighbourBoard[i][j] = boardState[i][j];
                 if(boardState[i][j] == 1){
@@ -147,7 +154,7 @@ public class A2Q1_nQueens {
 
         // this loop will go through all the neighbours of the current state and see which is the best
         // this will only apply one move at time and see which state is best after that one move
-        for(int i = 0; i < n ; i ++){
+        for(int i = 0; i < n ; i ++){ // O (N^5)
             neighbourBoard[i][filledColumns[i]] = 0; // want to remove the queen from the old board to find the neighbours
             for(int j = 0; j < n; j ++){
                 // This if is saying skip the position if it is the same as the old board state
@@ -157,8 +164,8 @@ public class A2Q1_nQueens {
                 // reinitializing the neighbour constraints to create it for the new board
                 neighbourConstraints = new int[n][n];
                 neighbourBoard[i][j] = 1; // finding the next neighbour by placing a queen
-                updateConstraintGraph(false, neighbourBoard, neighbourConstraints);
-                neighbourHeuristic = getBadQueens(neighbourBoard,neighbourConstraints);
+                updateConstraintGraph(false, neighbourBoard, neighbourConstraints); // O(N^3)
+                neighbourHeuristic = getBadQueens(neighbourBoard,neighbourConstraints); // O(N^2)
 
                 if(bestHeuristic >= neighbourHeuristic){
                     this.boardState = copyBoard(neighbourBoard);
@@ -216,10 +223,18 @@ public class A2Q1_nQueens {
                 chess.repeatHeuristicCount = 0;
             }
         }
+        int[] assignmentAnswer = new int[n];
 
         for(int i = 0 ; i < n; i ++){
             System.out.println(Arrays.toString(chess.boardState[i]));
+            for(int j = 0; j < n ; j ++){
+                if(chess.boardState[i][j] == 1){
+                    assignmentAnswer[i] = j;
+                }
+            }
         }
+
+        System.out.println(Arrays.toString(assignmentAnswer));
 
     }
 }
