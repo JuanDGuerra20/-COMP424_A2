@@ -1,11 +1,12 @@
 import java.util.Arrays;
 import java.util.Random;
 public class A2Q1_nQueens {
-    public static int n = 40;
+    public static int n = 50;
     public int[][] boardState = new int[n][n];
     public int[][] constraintGraph = new int[n][n];
     public int[] filledColumns = new int[n];
 
+    public int repeatHeuristicCount = 0;
     public int[][] previousState = new int[n][n];
 
     public void addConstraints(int qx,int qy, int[][] constraintGraph){
@@ -131,7 +132,8 @@ public class A2Q1_nQueens {
     public int findBestNeighbour(){
         // This will update the boardState with the best neighbour boardState
         previousState = copyBoard(this.boardState);
-        int bestHeuristic = getBadQueens(boardState, constraintGraph);
+        int oldHeuristic = getBadQueens(boardState, constraintGraph);
+        int bestHeuristic = oldHeuristic;
         int [][] neighbourBoard = new int[n][n];
         int [][] neighbourConstraints;
         int neighbourHeuristic;
@@ -156,7 +158,7 @@ public class A2Q1_nQueens {
                 neighbourBoard[i][j] = 1;
                 updateConstraintGraph(false, neighbourBoard, neighbourConstraints);
                 neighbourHeuristic = getBadQueens(neighbourBoard,neighbourConstraints);
-                if(bestHeuristic > neighbourHeuristic){
+                if(bestHeuristic >= neighbourHeuristic){
                     this.boardState = copyBoard(neighbourBoard);
                     bestHeuristic = neighbourHeuristic;
                     this.constraintGraph = copyBoard(neighbourConstraints);
@@ -166,6 +168,9 @@ public class A2Q1_nQueens {
             neighbourBoard[i][filledColumns[i]] = 1;
         }
         updateFilledColumns();
+        if(oldHeuristic == bestHeuristic){
+            this.repeatHeuristicCount ++;
+        }
         return bestHeuristic;
     }
 
@@ -195,9 +200,12 @@ public class A2Q1_nQueens {
         chess.createBoard();
         chess.updateConstraintGraph(true, chess.boardState, chess.constraintGraph);
         while(chess.findBestNeighbour() > 0){
-            // this will randomize the board if we are at a local minima
-            if(chess.checkEqualStates(chess.previousState, chess.boardState)){
+            // this will randomize the board if we are at the same board state as previous iteration (local minima) or the heuristic hasn't changed in 5 trials so we probably won't be decreasing soon or it is switching between states over and over again
+            // this update will probably help solve the larger problems while not affecting the smaller sizes too much
+            // this is because resetting the board completely will make us start from a possibly bad state
+            if(chess.checkEqualStates(chess.previousState, chess.boardState) || chess.repeatHeuristicCount == 5){
                 chess.createBoard();
+                chess.repeatHeuristicCount = 0;
             }
         }
 
